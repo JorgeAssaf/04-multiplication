@@ -13,7 +13,7 @@ export interface SaveFileOptions {
 export class SaveFile implements SaveFileUseCase {
   execute({
     fileContent,
-    fileDestination = 'output',
+    fileDestination = 'outputs',
     fileName = 'table',
   }: SaveFileOptions): boolean {
     try {
