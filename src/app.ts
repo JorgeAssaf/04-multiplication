@@ -7,6 +7,5 @@ import { ServerApp } from './presentation/server-app'
 
 function main() {
   const { b: base, l: limit, s: show, d: fileDestination, n: fileName } = yarg
-
   ServerApp.run({ base, limit, show, fileDestination, fileName })
 }
