@@ -1,52 +1,84 @@
 import fs from 'fs'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { SaveFile } from './save-file.use-case'
 
 describe('SaveFileUseCase', () => {
-  const customOption = {
-    fileDestination: 'custom/destination',
-    fileName: 'table-custom',
-    fileContent: 'custom file content',
+  const customOptions = {
+    fileContent: 'custom content',
+    fileDestination: 'custom-outputs/file-destination',
+    fileName: 'custom-table-name',
   }
-  const customFilePath = `${customOption.fileDestination}/${customOption.fileName}.txt`
+
+  const customFilePath = `${customOptions.fileDestination}/${customOptions.fileName}.txt`
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   afterEach(() => {
     const outputFolderExists = fs.existsSync('outputs')
     if (outputFolderExists) fs.rmSync('outputs', { recursive: true })
 
-    const outputCustomFolderExists = fs.existsSync(
-      customOption.fileDestination,
+    const customOutputFolderExists = fs.existsSync(
+      customOptions.fileDestination,
     )
-    if (outputCustomFolderExists) fs.rmSync(customOption.fileDestination, { recursive: true })
+    if (customOutputFolderExists)
+      fs.rmSync(customOptions.fileDestination, { recursive: true })
   })
 
-  test('should save file with default options', () => {
+  test('should save file with default values', () => {
     const saveFile = new SaveFile()
-    const options = {
-      fileContent: 'file content',
-    }
-    const file = saveFile.execute(options)
-    expect(file).toBeTruthy()
-
     const filePath = 'outputs/table.txt'
+    const options = {
+      fileContent: 'test content',
+    }
 
-    const fileExists = fs.existsSync(filePath)
+    const result = saveFile.execute(options)
+    const fileExists = fs.existsSync(filePath) // ojo
+    const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' })
 
-    expect(fileExists).toBeTruthy()
-    const fileContent = fs.readFileSync(filePath, 'utf-8')
+    expect(result).toBe(true)
+    expect(fileExists).toBe(true)
     expect(fileContent).toBe(options.fileContent)
   })
 
-  test('should save file with custom options', () => {
+  test('should save file with custom values', () => {
     const saveFile = new SaveFile()
 
-    const file = saveFile.execute(customOption)
+    const result = saveFile.execute(customOptions)
     const fileExists = fs.existsSync(customFilePath)
     const fileContent = fs.readFileSync(customFilePath, { encoding: 'utf-8' })
 
-    expect(file).toBeTruthy()
+    expect(result).toBe(true)
+    expect(fileExists).toBe(true)
+    expect(fileContent).toBe(customOptions.fileContent)
+  })
 
-    expect(fileExists).toBeTruthy()
+  test('should return false if directory could not be created', () => {
+    const saveFile = new SaveFile()
+    const mkdirSpy = vi.spyOn(fs, 'mkdirSync').mockImplementation(() => {
+      throw new Error('This is a custom error message from testing')
+    })
 
-    expect(fileContent).toBe(customOption.fileContent)
+    const result = saveFile.execute(customOptions)
+
+    expect(result).toBe(false)
+
+    mkdirSpy.mockRestore()
+  })
+
+  test('should return false if file could not be created', () => {
+    const saveFile = new SaveFile()
+    const writeFileSpy = vi
+      .spyOn(fs, 'writeFileSync')
+      .mockImplementation(() => {
+        throw new Error('This is a custom writing error message')
+      })
+
+    const result = saveFile.execute({ fileContent: 'Hola' })
+
+    expect(result).toBe(false)
+
+    writeFileSpy.mockRestore()
   })
 })

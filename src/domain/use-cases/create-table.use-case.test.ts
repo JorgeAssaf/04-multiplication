@@ -1,9 +1,11 @@
-import {CreateTable} from './create-table.use-case'
+import { describe, expect, test } from 'vitest'
+
+import { CreateTable } from './create-table.use-case'
 
 describe('CreateTableUseCase', () => {
   test('should createTable with default limit', () => {
     const createTable = new CreateTable()
-    const table = new CreateTable().execute({base: 2})
+    const table = new CreateTable().execute({ base: 2 })
     const rows = table.split('\n')
 
     expect(createTable).toBeInstanceOf(CreateTable)
@@ -13,7 +15,7 @@ describe('CreateTableUseCase', () => {
   })
 
   test('should createTable with custom limit', () => {
-    const options = {base: 5, limit: 5}
+    const options = { base: 5, limit: 5 }
     const createTable = new CreateTable()
     const table = new CreateTable().execute(options)
     const rows = table.split('\n')
